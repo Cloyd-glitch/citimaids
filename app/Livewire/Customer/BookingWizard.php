@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Livewire;
+namespace App\Livewire\Customer;  
 
 use Livewire\Component;
 
@@ -155,6 +155,6 @@ class BookingWizard extends Component
 
     public function render()
     {
-        return view('livewire.booking-wizard');
+        return view('livewire.customer.booking-wizard');
     }
 }

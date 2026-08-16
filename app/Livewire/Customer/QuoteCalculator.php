@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Livewire;
+namespace App\Livewire\Customer;
 
 use Livewire\Component;
 
@@ -8,6 +8,6 @@ class QuoteCalculator extends Component
 {
     public function render()
     {
-        return view('livewire.quote-calculator');
+        return view('livewire.customer.quote-calculator');
     }
 }
