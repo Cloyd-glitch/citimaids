@@ -6,22 +6,27 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
-        Schema::create('services', function (Blueprint $table) {
+        Schema::create(table: 'services', callback: function (Blueprint $table) {
             $table->id();
+            $table->string('name');
+            $table->string('slug')->unique();
+            $table->string('category'); // home | business | specialty
+            $table->string('icon');     // heroicon name, e.g. heroicon-o-home
+            $table->string('description');
+            $table->decimal('base_rate', 8, 2); // AED per hour
+            $table->boolean('is_active')->default(true);
             $table->timestamps();
+        });
+
+         Schema::table(table: 'services', callback: function (Blueprint $table) {
+            $table->json('features')->nullable()->after('description');
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
-        Schema::dropIfExists('services');
+        Schema::dropIfExists(table: 'services');
     }
 };

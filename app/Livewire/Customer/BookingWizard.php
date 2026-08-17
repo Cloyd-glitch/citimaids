@@ -1,7 +1,11 @@
 <?php
 
-namespace App\Livewire\Customer;  
+namespace App\Livewire\Customer;
 
+use App\Models\Booking;
+use App\Models\Customer;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Str;
 use Livewire\Component;
 
 class BookingWizard extends Component
@@ -46,6 +50,11 @@ class BookingWizard extends Component
         $this->bathrooms = (int) request()->query('bathrooms', $this->bathrooms) ?: $this->bathrooms;
         $this->deepClean = request()->query('deep') === '1';
         $this->frequency = request()->query('frequency', $this->frequency);
+
+        if (Auth::check()) {
+            $this->name = Auth::user()->name;
+            $this->email = Auth::user()->email;
+        }
     }
 
     protected function rates(): array
@@ -132,24 +141,36 @@ class BookingWizard extends Component
             'agreeTerms' => 'accepted',
         ]);
 
-        // TODO: persist the booking to your database, e.g.:
-        // $booking = \App\Models\Booking::create([
-        //     'property_type' => $this->propertyType,
-        //     'rooms' => $this->rooms,
-        //     'bathrooms' => $this->bathrooms,
-        //     'deep_clean' => $this->deepClean,
-        //     'frequency' => $this->frequency,
-        //     'date' => $this->date,
-        //     'time' => $this->time,
-        //     'name' => $this->name,
-        //     'email' => $this->email,
-        //     'phone' => $this->phone,
-        //     'address' => $this->address,
-        //     'notes' => $this->notes,
-        //     'total' => $this->estimatedTotal(),
-        // ]);
+        // Match an existing customer by email (so repeat bookings link to the
+        // same customer record), otherwise create a new one. If the person is
+        // logged in, tie the customer record to their account.
+        $customer = Customer::updateOrCreate(
+            ['email' => $this->email],
+            [
+                'user_id' => Auth::id(),
+                'name' => $this->name,
+                'phone' => $this->phone,
+                'address' => $this->address,
+            ]
+        );
 
-        $this->bookingReference = 'CM-' . strtoupper(uniqid());
+        $booking = Booking::create([
+            'customer_id' => $customer->id,
+            'property_type' => $this->propertyType,
+            'rooms' => $this->rooms,
+            'bathrooms' => $this->bathrooms,
+            'deep_clean' => $this->deepClean,
+            'frequency' => $this->frequency,
+            'scheduled_date' => $this->date,
+            'scheduled_time' => $this->time,
+            'address' => $this->address,
+            'notes' => $this->notes,
+            'total' => $this->estimatedTotal(),
+            'status' => 'pending',
+            'reference' => 'CM-'.strtoupper(Str::random(6)),
+        ]);
+
+        $this->bookingReference = $booking->reference;
         $this->submitted = true;
     }
 
